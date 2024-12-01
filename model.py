@@ -64,7 +64,7 @@ class DQN:
     self._evaluate_loss = []
     self.lock_model = mp.Lock()   # MRSW lock으로 바꾸어야 함
     self.network = CNN(self._n_observation, self._n_actions).to(self.device).share_memory()
-    self.target_network = CNN(self._n_observation, self._n_actions).to(self.device).share_memory()    # delete this share_memory()
+    self.target_network = CNN(self._n_observation, self._n_actions).to(self.device).share_memory()
     self.target_network.load_state_dict(self.network.state_dict())
     self.optimizer = optim.AdamW(self.network.parameters(), lr=self._lr, amsgrad=True)
     self.lock_memory = mp.Lock()
@@ -161,7 +161,8 @@ class DQN:
     return
 
   def copy_weights(self):
-    self.target_network.load_state_dict(self.network.state_dict())
+    with self.lock_model:
+      self.target_network.load_state_dict(self.network.state_dict())
 
   def get_loss(self):
     return self._evaluate_loss
@@ -170,4 +171,5 @@ class DQN:
     torch.save(self.target_network.state_dict(), f'model_weights_{i}.pth')
 
   def load_model(self, i):
-    self.target_network.load_state_dict(torch.load(f'model_weights_{i}.pth', map_location=self.device))
+    with self.lock_model:
+      self.target_network.load_state_dict(torch.load(f'model_weights_{i}.pth', map_location=self.device))
