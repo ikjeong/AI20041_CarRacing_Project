@@ -36,17 +36,17 @@ Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'
 
 class ReplayMemory(object):
 
-    def __init__(self, capacity):
-        self.memory = deque([], maxlen=capacity)
+  def __init__(self, capacity):
+    self.memory = deque([], maxlen=capacity)
 
-    def push(self, *args):
-        self.memory.append(Transition(*args))
+  def push(self, *args):
+    self.memory.append(Transition(*args))
 
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
+  def sample(self, batch_size):
+    return random.sample(self.memory, batch_size)
 
-    def __len__(self):
-        return len(self.memory)
+  def __len__(self):
+    return len(self.memory)
 
 class DQN:
   def __init__(self, action_space, batch_size=256, gamma=0.99, eps_start=0.9, eps_end=0.05, eps_decay=1000, lr=0.001):
@@ -104,17 +104,17 @@ class DQN:
         return torch.tensor([[self._action_space.sample()]], device=self.device, dtype=torch.long)
 
   def copy_memory(self):
-      # Move the shared memory to the memory
-      with self.lock_memory:
-          size = self._shared_memory.qsize()
-          for i in range(size):
-              item = self._shared_memory.get()
-              self._memory.push(item[0].to(self.device), item[1].to(self.device), item[2].to(self.device), item[3].to(self.device))
+    # Move the shared memory to the memory
+    with self.lock_memory:
+      size = self._shared_memory.qsize()
+      for i in range(size):
+        item = self._shared_memory.get()
+        self._memory.push(item[0].to(self.device), item[1].to(self.device), item[2].to(self.device), item[3].to(self.device))
 
   def train(self):
 
     if len(self._memory) < self._batch_size:
-        return
+      return
     
     self.training_count += 1
 
@@ -140,7 +140,7 @@ class DQN:
     # We then, for every state in the batch that is NOT final, we pass it in the target network to get the Q'-values and choose the max one
     next_state_values = torch.zeros(self._batch_size, device=self.device)
     with torch.no_grad():
-        next_state_values[non_final_mask] = self.target_network(non_final_next_states).max(1).values
+      next_state_values[non_final_mask] = self.target_network(non_final_next_states).max(1).values
 
     # Computing the expecting values with: reward + gamma * max(Q')
     expected_state_action_values = (next_state_values * self._gamma) + reward_batch
