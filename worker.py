@@ -29,7 +29,11 @@ def worker(agent, episode_duration, rewards_per_episode, average_episode_loss, s
             next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
 
         with agent.lock_memory:
-            agent._shared_memory.put((state, action, next_state, reward))
+            state_cpu = state.cpu()
+            action_cpu = action.cpu()
+            next_state_cpu = next_state.cpu()
+            reward_cpu = reward.cpu()
+            agent._shared_memory.put((state_cpu, action_cpu, next_state_cpu, reward_cpu))
         state = next_state
 
         if done:
@@ -37,6 +41,6 @@ def worker(agent, episode_duration, rewards_per_episode, average_episode_loss, s
             if len(ll) > 0:
                 with statistics_lock:
                     episode_duration.append(t+1)
-                    rewards_per_episode.append(episode_total_reward)
+                    rewards_per_episode.append(episode_total_reward.cpu())
                     average_episode_loss.append(sum(ll) / len(ll))
             break

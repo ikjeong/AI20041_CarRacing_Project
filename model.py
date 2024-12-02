@@ -104,11 +104,12 @@ class DQN:
         return torch.tensor([[self._action_space.sample()]], device=self.device, dtype=torch.long)
 
   def copy_memory(self):
-    
-    # Move the shared memory to the memory
-    with self.lock_memory:
-      while not self._shared_memory.empty():
-          self._memory.push(*self._shared_memory.get())
+      # Move the shared memory to the memory
+      with self.lock_memory:
+          size = self._shared_memory.qsize()
+          for i in range(size):
+              item = self._shared_memory.get()
+              self._memory.push(item[0].to(self.device), item[1].to(self.device), item[2].to(self.device), item[3].to(self.device))
 
   def train(self):
 
